@@ -12,12 +12,12 @@ from pymongo.errors import PyMongoError
 from .exceptions import *
 from .util import *
 
-# Load from environment the values from th MONGO IP and PORT
-try:
-    MONGO_URL = os.environ['MONGO_IP']
-    MONGO_PORT = os.environ['MONGO_PORT']
-    logging.debug(f'Found configuration for storage {MONGO_URL}:{MONGO_PORT}')
-except KeyError:
+
+# Load Mongo address from environment
+MONGO_URL = os.environ.get('MONGO_IP', None)
+MONGO_PORT = os.environ.get('MONGO_PORT', None)
+
+if not MONGO_URL:
     logging.debug("Could not find mongo configuration in env, using defaults")
     MONGO_URL = "mongodb.kubeml"
     MONGO_PORT = 27017

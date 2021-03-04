@@ -15,15 +15,15 @@ from .dataset import _KubeArgs, KubeDataset
 from .exceptions import *
 from .util import *
 
-# Load from environment the values from th MONGO IP and PORT
-try:
-    REDIS_URL = os.environ['REDIS_URL']
-    REDIS_PORT = os.environ['REDIS_PORT']
-    logging.debug(f'Found configuration for redis {REDIS_URL}:{REDIS_PORT}')
-except KeyError:
+# Load from environment the values for REDIS
+REDIS_URL = os.environ.get('REDIS_URL', None)
+REDIS_PORT = os.environ.get('REDIS_PORT', None)
+
+if not REDIS_URL:
     logging.debug("Could not find redis configuration in env, using defaults")
     REDIS_URL = "redisai.kubeml"
     REDIS_PORT = 6379
+
 
 
 class KubeModel(ABC):
