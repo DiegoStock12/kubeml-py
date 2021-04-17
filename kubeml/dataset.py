@@ -1,7 +1,7 @@
 import logging
 import os
 import pickle
-from abc import ABC
+from abc import ABC, abstractmethod
 
 import numpy as np
 import torch.utils.data as data
@@ -12,12 +12,12 @@ from pymongo.errors import PyMongoError
 from .exceptions import *
 from .util import *
 
-
-# Load Mongo address from environment
-MONGO_URL = os.environ.get('MONGO_IP', None)
-MONGO_PORT = os.environ.get('MONGO_PORT', None)
-
-if not MONGO_URL:
+# Load from environment the values from th MONGO IP and PORT
+try:
+    MONGO_URL = os.environ['MONGO_IP']
+    MONGO_PORT = os.environ['MONGO_PORT']
+    logging.debug(f'Found configuration for storage {MONGO_URL}:{MONGO_PORT}')
+except KeyError:
     logging.debug("Could not find mongo configuration in env, using defaults")
     MONGO_URL = "mongodb.kubeml"
     MONGO_PORT = 27017
@@ -159,13 +159,21 @@ class KubeDataset(data.Dataset, ABC):
 
         data, labels = None, None
         for batch in batches:
+
+            # load the data and the labels as numpy arrays
+            # flatten the labels so instead of i.e (64,1) they're (64,)
+            # thus we can call hstack on them
             d = pickle.loads(batch['data'])
             l = pickle.loads(batch['labels'])
 
             if data is None:
-                data, labels = d, l
+                data, labels = d, l.flatten()
             else:
                 data = np.vstack([data, d])
-                labels = np.hstack([labels, l])
+                labels = np.hstack([labels, l.flatten()])
 
         return data, labels.flatten()
+
+    @abstractmethod
+    def __len__(self):
+        pass
